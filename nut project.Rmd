@@ -1,0 +1,132 @@
+---
+title: "Caloric_vs_alcohol"
+author: "Group 13"
+date: "23/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question
+
+Is there a correlation between caloric intake and the number of alcoholic drinks consumed weekly? 
+
+
+## MOTIVATION
+
+This question was chosen keeping the Nutrition database in mind. We wanted to analyze a relation between alcohol consumption and calorie intake because we are aware of the fact that a lot of alcohol is consumed by people all over the world. Now an interesting aspect arises, is there a correlation between caloric intake and the number of alcoholic drinks consumed weekly? Even though it is known that moderate alcohol drinkers tend to munch on food right when they start drinking, so that would lean us to thinking that there is some mind of correlation so let's find out whether this is true using the nutrition dataset.
+
+
+## Method
+
+I will use linear regression to find out the answer to this question.
+
+
+## Experiment
+
+
+```{r cars}
+library(tidyr)
+library(tidyverse)
+library(broom)
+
+load("NutritionStudy.rda")
+
+head(NutritionStudy)
+
+```
+
+We can clearly see that we have available data for Caloric intake and number of alcohol drinks consumed per week. 
+
+
+```{r}
+
+dat <- NutritionStudy %>%
+  select(Alcohol, Calories)
+head(dat)
+```
+```{r}
+dat %>%
+  ggplot(mapping = aes(x = Alcohol,y = Calories)) + geom_point() +labs(x = "Alcoholic drinks consumed per week", y= "Caloric intake")
+```
+We should get rid of this outlier
+
+```{r}
+dat <- dat %>% 
+  filter(Alcohol < 70)
+```
+
+
+# Hypothesis 
+
+# Linear Regression
+
+We want to know if there is a correlation between caloric intake and alcohol consumption. So we write the alternative as H_a>0
+
+
+$$H_0 : B_1 = 0$$
+$$H_a : B_1 >0 $$
+```{r}
+dat <- dat %>% 
+  filter(Alcohol != 0)
+```
+
+
+
+```{r}
+mod.fit <-lm(Calories ~ Alcohol , data=dat)
+
+mod.fit %>% 
+  tidy()
+```
+
+Since the p-value is less than 0.05, we can reject the null hypothesis. There's evidence to suggest that drinking more alcohol is related to an increase in number of calories consumed. 
+
+
+```{r}
+dat %>%
+  ggplot(mapping = aes(x = Alcohol,y = Calories)) + geom_point() + stat_smooth(method = "lm",se =   FALSE) +labs(x = "Alcoholic drinks consumed per week", y= "Caloric intake")
+```
+
+
+```{r}
+mod.fit %>% 
+  glance() %>%
+  select(r.squared, adj.r.squared)
+```
+
+```{r}
+mod.fit %>%
+  broom::augment()
+```
+```{r}
+mod.fit %>%
+  augment() %>%
+  ggplot(mapping = aes(x =Alcohol,y = .resid)) +geom_point() +geom_hline(yintercept = 0,color = "red") +labs(x = "Alcohol Consumption",y = "Residual value")
+```
+
+## Results 
+
+Calories = 1726.67 + 26.25 x Alcohol
+Where, 
+$$ B_0 = 1726.67 $$
+and $$B_1 = 26.25 $$
+
+
+
+Here B_0 are the average calories consumed by a person and B_1 calories are expected to increase with each alcoholic drink.
+
+
+
+## Conclusion 
+Since we reject the null hypothesis, as there's evidence to suggest that drinking more alcohol is related to an increase in number of calories consumed, we can come to a conclusion that with the increase in each drink, approximately 26 calories are increased for the person consuming it. 
+
+
+
+## References
+
+1. https://www.statsandr.com/blog/correlation-coefficient-and-correlation-test-in-r/
+2. https://stackoverflow.com/questions/15016723/create-categories-by-comparing-a-numeric-column-with-a-fixed-value
+
